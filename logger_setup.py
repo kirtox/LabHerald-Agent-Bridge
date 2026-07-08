@@ -7,9 +7,15 @@ rotating log file (max 5 MB, up to 3 backups) under ./logs/.
 
 import logging
 import os
+import sys
 from logging.handlers import RotatingFileHandler
 
-_LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+if getattr(sys, 'frozen', False):
+    _BASE = os.path.dirname(sys.executable)
+else:
+    _BASE = os.path.dirname(os.path.abspath(__file__))
+
+_LOG_DIR = os.path.join(_BASE, "logs")
 
 
 def setup_logger(name: str = "ux_lab_robot") -> logging.Logger:

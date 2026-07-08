@@ -1,0 +1,16 @@
+{
+  "warnings": [
+    {
+      "archive": "report_20260624_005000.zip",
+      "reason": "Avatar result (llm_report_*.json) not found within timeout (180s)",
+      "last_failed": "2026-07-07 17:16:31",
+      "fail_count": 2
+    },
+    {
+      "archive": "report_20260708_010740.zip",
+      "reason": "Avatar result (llm_report_*.json) not found within timeout (180s)",
+      "last_failed": "2026-07-08 17:36:35",
+      "fail_count": 16
+    }
+  ]
+}

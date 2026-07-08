@@ -1,0 +1,20 @@
+{
+    "source_folder_test": "\\\\ger.corp.intel.com\\ec\\proj\\ha\\ICG\\symstore\\CMAttachments\\JIRA\\BT\\Ernie\\UX_lab_logs",
+    "source_folder": "\\\\10.225.74.135\\report",
+    "intelavatar_lnk": "C:\\Users\\erniewux\\AppData\\Roaming\\Microsoft\\Windows\\SendTo\\IntelAvatar.lnk",
+    "archive_pattern": "^report_\\d{8}_\\d{6}\\.zip$",
+    "email_to_test": [
+        "steven1.chen@intel.com", "kj.fang@intel.com", "timdaway.lai@intel.com",
+        "frank.fc.yang@intel.com", "erniex.wu@intel.com", "benx.lai@intel.com"
+    ],
+    "email_to": [
+        "erniex.wu@intel.com", "kj.fang@intel.com"
+    ],
+    "email_cc": [
+        "erniex.wu@intel.com"
+    ],
+    "scan_interval_minutes": 2,
+    "intelavatar_timeout": 180,    "network_username": "\\oob",
+    "network_password": "",    "avatar_result_pattern": "llm_report_*.json",
+    "local_staging_folder": ""
+}

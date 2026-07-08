@@ -1,15 +1,15 @@
-# UX Lab Admin Robot — Workflow Overview
+# LabHerald Agent Bridge — Workflow Overview
 
 ## Project Overview
 
-UX Lab Admin Robot is an automation script that scans a network shared folder for archive files daily, sends them to IntelAvatar for analysis, moves the results into the `Completed` folder, and sends an email notification via Outlook.
+LabHerald Agent Bridge is an automation script that scans a network shared folder for archive files daily, sends them to IntelAvatar for analysis, moves the results into the `Completed` folder, and sends an email notification via Outlook.
 
 ---
 
 ## File Structure
 
 ```
-UX_lab_admin_robot/
+LabHerald-Agent-Bridge/
 ├── main.py              # Entry point: CLI parsing + scheduler
 ├── config.py            # Centralized path and parameter configuration
 ├── folder_watcher.py    # Folder access check + new archive scanner
@@ -164,6 +164,33 @@ Records failed archives and their failure reasons, with cumulative failure count
 | `EMAIL_CC` | `["cc1@intel.com", ...]` | CC recipient list |
 | `STATE_FILE` | `processed_files.json` | Processed files record |
 | `WARNING_FILE` | `warning_files.json` | Failure warning record |
+
+---
+
+## Packaging as EXE (PyInstaller)
+
+### Install PyInstaller
+```powershell
+pip install pyinstaller
+```
+
+### Build
+```powershell
+pyinstaller --onefile --console --name LabHerald_Agent_Bridge --icon assets/icon.ico main.py
+```
+
+The EXE will be output to `dist\LabHerald_Agent_Bridge.exe`.
+
+### Deploy
+Copy the following files next to the EXE before running:
+```
+dist/
+├── LabHerald_Agent_Bridge.exe
+├── config.json          ← edit this to change paths / settings
+```
+
+> **Note**: `config.json` is auto-generated with default values on first run if it is missing.
+> `processed_files.json`, `warning_files.json`, and `logs/` are also created automatically next to the EXE.
 
 ---
 

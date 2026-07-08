@@ -42,13 +42,14 @@ def _ensure_dir(path: str) -> bool:
 
 def _copy_to_staging(source_archive: str) -> str | None:
     """
-    Copy *source_archive* from the network share to LOCAL_STAGING_FOLDER.
+    Copy *source_archive* from the network share to LOCAL_STAGING_FOLDER/archives/.
     Returns the local path on success, None on failure.
     """
-    if not _ensure_dir(LOCAL_STAGING_FOLDER):
+    archives_dir = os.path.join(LOCAL_STAGING_FOLDER, "archives")
+    if not _ensure_dir(archives_dir):
         return None
 
-    dest = os.path.join(LOCAL_STAGING_FOLDER, os.path.basename(source_archive))
+    dest = os.path.join(archives_dir, os.path.basename(source_archive))
     try:
         shutil.copy2(source_archive, dest)
         logger.info(f"Staged '{os.path.basename(source_archive)}' → {LOCAL_STAGING_FOLDER}")

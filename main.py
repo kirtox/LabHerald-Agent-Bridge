@@ -8,7 +8,7 @@ Usage
 # Run once immediately (good for testing):
     python main.py --run-now
 
-# Start the daily scheduler (runs every day at SCAN_TIME defined in config.py):
+# Start the interval scheduler (scans every SCAN_INTERVAL_MINUTES defined in config.json):
     python main.py
 
 # Test individual pipeline stages:
@@ -29,7 +29,7 @@ from datetime import datetime
 
 import schedule
 
-from config import COMPLETED_FOLDER, LOCAL_STAGING_FOLDER, SCAN_TIME, SOURCE_FOLDER, STATE_FILE, WARNING_FILE
+from config import COMPLETED_FOLDER, LOCAL_STAGING_FOLDER, SCAN_INTERVAL_MINUTES, SOURCE_FOLDER, STATE_FILE, WARNING_FILE
 from email_draft import send_via_outlook
 from file_processor import process_archive, run_intel_avatar, wait_for_avatar_result, _copy_to_staging
 from folder_watcher import check_folder_access, scan_new_archives
@@ -212,17 +212,22 @@ def main() -> None:
         run_scan_job()
         sys.exit(0)
 
-    # Daily scheduler
-    logger.info(f"Scheduler started. Daily scan scheduled at {SCAN_TIME}.")
+    # Interval scheduler
+    logger.info(f"Scheduler started. Scanning every {SCAN_INTERVAL_MINUTES} minute(s).")
     logger.info("Press Ctrl-C to stop.")
-    schedule.every().day.at(SCAN_TIME).do(run_scan_job)
+    schedule.every(SCAN_INTERVAL_MINUTES).minutes.do(run_scan_job)
 
-    # Run once at startup so we don't miss anything that arrived overnight
+    # Run once at startup immediately
     logger.info("Running an initial scan on startup...")
     run_scan_job()
 
+    _heartbeat_ticks = 0
     while True:
         schedule.run_pending()
+        _heartbeat_ticks += 1
+        if _heartbeat_ticks % 10 == 0:  # every ~5 minutes (10 x 30s)
+            next_run = schedule.next_run()
+            logger.info(f"[Scheduler] Waiting... next scan at {next_run.strftime('%Y-%m-%d %H:%M:%S')}")
         time.sleep(30)  # check every 30 seconds
 
 

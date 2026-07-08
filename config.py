@@ -2,63 +2,84 @@
 config.py
 ---------
 Central configuration for UX Lab Admin Robot.
-Edit the constants here to adjust paths, schedule time, and patterns.
+Settings are loaded from config.json (located next to the EXE or script).
+If config.json does not exist, it will be created automatically with default values.
 """
 
 import os
+import sys
+import json
 
 # ---------------------------------------------------------------------------
-# Network paths
+# BASE_DIR — resolves correctly both as a .py script and as a PyInstaller EXE
 # ---------------------------------------------------------------------------
-SOURCE_FOLDER_TEST = r"\\ger.corp.intel.com\ec\proj\ha\ICG\symstore\CMAttachments\JIRA\BT\Ernie\UX_lab_logs"
-SOURCE_FOLDER = r"\\ger.corp.intel.com\ec\proj\ha\ICG\symstore\CMAttachments\JIRA\BT\UX_Lab_Logs"
-COMPLETED_FOLDER = SOURCE_FOLDER + r"\Completed"
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
 
 # ---------------------------------------------------------------------------
-# IntelAvatar shortcut path
+# Default values — written to config.json on first run
 # ---------------------------------------------------------------------------
-INTELAVATAR_LNK = r"C:\Users\erniewux\AppData\Roaming\Microsoft\Windows\SendTo\IntelAvatar.lnk"
+_DEFAULTS: dict = {
+    "source_folder_test": r"\\ger.corp.intel.com\ec\proj\ha\ICG\symstore\CMAttachments\JIRA\BT\Ernie\UX_lab_logs",
+    "source_folder":      r"\\ger.corp.intel.com\ec\proj\ha\ICG\symstore\CMAttachments\JIRA\BT\UX_Lab_Logs",
+    "intelavatar_lnk":    r"C:\Users\erniewux\AppData\Roaming\Microsoft\Windows\SendTo\IntelAvatar.lnk",
+    "archive_pattern":    r"^report_\d{8}_\d{6}\.zip$",
+    "email_to_test": [
+        "steven1.chen@intel.com", "kj.fang@intel.com", "timdaway.lai@intel.com",
+        "frank.fc.yang@intel.com", "erniex.wu@intel.com", "benx.lai@intel.com"
+    ],
+    "email_to": [
+        "erniex.wu@intel.com"
+    ],
+    "email_cc": [
+        "erniex.wu@intel.com"
+    ],
+    "scan_interval_minutes": 5,
+    "intelavatar_timeout":   180,    "network_username":      "",
+    "network_password":      "",    "avatar_result_pattern": "llm_report_*.json",
+    "local_staging_folder":  "",   # leave empty to use ~/Downloads/Agent_Bridge_Admin
+}
 
 # ---------------------------------------------------------------------------
-# Archive filename pattern  (e.g. report_20260514_170256.zip)
+# Load config.json — create it with defaults if it doesn't exist
 # ---------------------------------------------------------------------------
-ARCHIVE_PATTERN = r"^report_\d{8}_\d{6}\.zip$"
+if not os.path.exists(CONFIG_FILE):
+    with open(CONFIG_FILE, "w", encoding="utf-8") as _f:
+        json.dump(_DEFAULTS, _f, indent=4, ensure_ascii=False)
+    _cfg = _DEFAULTS.copy()
+else:
+    with open(CONFIG_FILE, "r", encoding="utf-8") as _f:
+        _cfg = json.load(_f)
 
 # ---------------------------------------------------------------------------
-# State file – tracks which archives have already been processed
+# Expose constants — same names as before, no other files need to change
 # ---------------------------------------------------------------------------
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATE_FILE = os.path.join(BASE_DIR, "processed_files.json")
+SOURCE_FOLDER_TEST = _cfg["source_folder_test"]
+SOURCE_FOLDER      = _cfg["source_folder"]
+COMPLETED_FOLDER   = SOURCE_FOLDER + r"\Completed"
 
-# ---------------------------------------------------------------------------
-# Email draft output directory (same folder as this script)
-# ---------------------------------------------------------------------------
+INTELAVATAR_LNK  = _cfg["intelavatar_lnk"]
+ARCHIVE_PATTERN  = _cfg["archive_pattern"]
+
+STATE_FILE      = os.path.join(BASE_DIR, "processed_files.json")
 EMAIL_DRAFT_DIR = BASE_DIR
+WARNING_FILE    = os.path.join(BASE_DIR, "warning_files.json")
 
-# ---------------------------------------------------------------------------
-# Email recipients – edit these lists to change who gets notified
-# ---------------------------------------------------------------------------
-EMAIL_TO: list[str] = [
-    "steven1.chen@intel.com", "kj.fang@intel.com", "timdaway.lai@intel.com", 
-    "frank.fc.yang@intel.com", "erniex.wu@intel.com", "benx.lai@intel.com",
-]
-EMAIL_CC: list[str] = [
-    "erniex.wu@intel.com",
-]
+EMAIL_TO: list[str] = _cfg["email_to"]
+EMAIL_CC: list[str] = _cfg["email_cc"]
 
-# ---------------------------------------------------------------------------
-# Scheduler – time of the daily scan (24-hour HH:MM)
-# ---------------------------------------------------------------------------
-SCAN_TIME = "12:00"
+SCAN_INTERVAL_MINUTES = int(_cfg.get("scan_interval_minutes", 60))
+INTELAVATAR_TIMEOUT   = _cfg["intelavatar_timeout"]
+NETWORK_USERNAME      = _cfg.get("network_username", "")
+NETWORK_PASSWORD      = _cfg.get("network_password", "")
+AVATAR_RESULT_PATTERN = _cfg["avatar_result_pattern"]
 
-# Timeout (seconds) while waiting for IntelAvatar to finish per file
-INTELAVATAR_TIMEOUT = 180
-
-# Filename pattern that Avatar writes into the extracted folder when analysis is done
-AVATAR_RESULT_PATTERN = "llm_report_*.json"
-
-# Local staging folder – archives are copied here before being sent to Avatar
-LOCAL_STAGING_FOLDER = os.path.join(os.path.expanduser("~"), "Downloads", "Agent_Bridge_Admin")
-
-# Warning file – records archives that failed processing and their reasons
-WARNING_FILE = os.path.join(BASE_DIR, "warning_files.json")
+_staging = _cfg.get("local_staging_folder", "")
+LOCAL_STAGING_FOLDER = (
+    _staging if _staging
+    else os.path.join(os.path.expanduser("~"), "Downloads", "Agent_Bridge_Admin")
+)

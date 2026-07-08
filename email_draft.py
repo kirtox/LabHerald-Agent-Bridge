@@ -103,26 +103,46 @@ def send_via_outlook(processed_files: List[str], completed_folder: str, result_j
         )
         raise RuntimeError("pywin32 not available") from exc
 
-    outlook = win32com.client.Dispatch("Outlook.Application")
-    logger.debug("Outlook COM object created.")
+    try:
+        outlook = win32com.client.dynamic.Dispatch("Outlook.Application")
+        logger.debug("Outlook COM object created.")
+    except Exception as exc:
+        logger.error(f"[Outlook] Step 1 FAILED – Cannot create Outlook COM object. "
+                     f"Outlook may not be installed or is running as a different user. Error: {exc}")
+        raise
 
-    namespace = outlook.GetNamespace("MAPI")
-    logger.debug("MAPI namespace obtained.")
+    try:
+        namespace = outlook.GetNamespace("MAPI")
+        logger.debug("MAPI namespace obtained.")
+    except Exception as exc:
+        logger.error(f"[Outlook] Step 2 FAILED – Cannot get MAPI namespace. "
+                     f"Outlook may not be signed in. Error: {exc}")
+        raise
 
     subject = f"[UX Lab Admin Robot] TEST EMAIL – Processed Archives \u2013 {datetime.now().strftime('"%Y-%m-%d %H:%M:%S"')}"
     html_body = _build_html_body(processed_files, completed_folder, result_json_paths)
     logger.debug(f"Email subject: {subject}")
     logger.debug(f"HTML body length: {len(html_body)} chars")
 
-    mail = outlook.CreateItem(0)  # 0 = olMailItem
-    mail.To = "; ".join(EMAIL_TO)
-    mail.CC = "; ".join(EMAIL_CC) if EMAIL_CC else ""
-    mail.Subject = subject
-    mail.HTMLBody = html_body
-    logger.debug(f"Mail item configured. To={mail.To!r}  CC={mail.CC!r}")
-    logger.debug("Calling mail.Send()...")
-    mail.Send()
-    logger.info(f"Email sent via Outlook to: {', '.join(EMAIL_TO)}")
+    try:
+        mail = outlook.CreateItem(0)  # 0 = olMailItem
+        mail.To = "; ".join(EMAIL_TO)
+        mail.CC = "; ".join(EMAIL_CC) if EMAIL_CC else ""
+        mail.Subject = subject
+        mail.HTMLBody = html_body
+        logger.debug(f"Mail item configured. To={mail.To!r}  CC={mail.CC!r}")
+    except Exception as exc:
+        logger.error(f"[Outlook] Step 3 FAILED – Cannot create mail item. Error: {exc}")
+        raise
+
+    try:
+        logger.debug("Calling mail.Send()...")
+        mail.Send()
+        logger.info(f"Email sent via Outlook to: {', '.join(EMAIL_TO)}")
+    except Exception as exc:
+        logger.error(f"[Outlook] Step 4 FAILED – mail.Send() failed. "
+                     f"Check Outlook is online and connected to Exchange. Error: {exc}")
+        raise
 
     # Verify the mail actually left Outbox and landed in Sent Items
     # time.sleep(3)
