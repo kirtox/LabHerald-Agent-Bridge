@@ -24,8 +24,8 @@ CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
 # Default values — written to config.json on first run
 # ---------------------------------------------------------------------------
 _DEFAULTS: dict = {
-    "source_folder_test": r"\\ger.corp.intel.com\ec\proj\ha\ICG\symstore\CMAttachments\JIRA\BT\Ernie\UX_lab_logs",
-    "source_folder":      r"\\ger.corp.intel.com\ec\proj\ha\ICG\symstore\CMAttachments\JIRA\BT\UX_Lab_Logs",
+    "source_folder_test":      r"\\ger.corp.intel.com\ec\proj\ha\ICG\symstore\CMAttachments\JIRA\BT\UX_Lab_Logs",
+    "source_folder":      r"\\10.225.74.135\report",
     "intelavatar_lnk":    r"C:\Users\erniewux\AppData\Roaming\Microsoft\Windows\SendTo\IntelAvatar.lnk",
     "archive_pattern":    r"^report_\d{8}_\d{6}\.zip$",
     "email_to_test": [
@@ -38,7 +38,7 @@ _DEFAULTS: dict = {
     "email_cc": [
         "erniex.wu@intel.com"
     ],
-    "scan_interval_minutes": 5,
+    "scan_interval_seconds": 60,
     "intelavatar_timeout":   180,    "network_username":      "",
     "network_password":      "",    "avatar_result_pattern": "llm_report_*.json",
     "local_staging_folder":  "",   # leave empty to use ~/Downloads/Agent_Bridge_Admin
@@ -72,7 +72,7 @@ WARNING_FILE    = os.path.join(BASE_DIR, "warning_files.json")
 EMAIL_TO: list[str] = _cfg["email_to"]
 EMAIL_CC: list[str] = _cfg["email_cc"]
 
-SCAN_INTERVAL_MINUTES = int(_cfg.get("scan_interval_minutes", 60))
+SCAN_INTERVAL_SECONDS = int(_cfg.get("scan_interval_seconds", _cfg.get("scan_interval_minutes", 5) * 60))
 INTELAVATAR_TIMEOUT   = _cfg["intelavatar_timeout"]
 NETWORK_USERNAME      = _cfg.get("network_username", "")
 NETWORK_PASSWORD      = _cfg.get("network_password", "")

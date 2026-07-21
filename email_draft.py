@@ -103,17 +103,19 @@ def send_via_outlook(processed_files: List[str], completed_folder: str, result_j
         )
         raise RuntimeError("pywin32 not available") from exc
 
+    logger.debug("[Outlook] Step 1 – Dispatching Outlook.Application COM object...")
     try:
         outlook = win32com.client.dynamic.Dispatch("Outlook.Application")
-        logger.debug("Outlook COM object created.")
+        logger.debug("[Outlook] Step 1 OK – COM object created.")
     except Exception as exc:
         logger.error(f"[Outlook] Step 1 FAILED – Cannot create Outlook COM object. "
                      f"Outlook may not be installed or is running as a different user. Error: {exc}")
         raise
 
+    logger.debug("[Outlook] Step 2 – Getting MAPI namespace (may hang if Outlook shows a dialog)...")
     try:
         namespace = outlook.GetNamespace("MAPI")
-        logger.debug("MAPI namespace obtained.")
+        logger.debug("[Outlook] Step 2 OK – MAPI namespace obtained.")
     except Exception as exc:
         logger.error(f"[Outlook] Step 2 FAILED – Cannot get MAPI namespace. "
                      f"Outlook may not be signed in. Error: {exc}")

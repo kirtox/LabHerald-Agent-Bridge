@@ -29,7 +29,7 @@ from datetime import datetime
 
 import schedule
 
-from config import COMPLETED_FOLDER, LOCAL_STAGING_FOLDER, SCAN_INTERVAL_MINUTES, SOURCE_FOLDER, STATE_FILE, WARNING_FILE
+from config import COMPLETED_FOLDER, LOCAL_STAGING_FOLDER, SCAN_INTERVAL_SECONDS, SOURCE_FOLDER, STATE_FILE, WARNING_FILE
 from email_draft import send_via_outlook
 from file_processor import process_archive, run_intel_avatar, wait_for_avatar_result, _copy_to_staging
 from folder_watcher import check_folder_access, scan_new_archives
@@ -150,8 +150,12 @@ def run_scan_job() -> None:
             if result_json:
                 result_json_paths.append(result_json)
             processed.add(archive_path.split("\\")[-1])  # store basename only
+            logger.debug("Calling save_processed()...")
             save_processed(STATE_FILE, processed)         # persist after each success
+            logger.debug("save_processed() completed.")
+            logger.debug("Calling clear_warning()...")
             clear_warning(WARNING_FILE, archive_path.split("\\")[-1])
+            logger.debug("clear_warning() completed.")
         else:
             logger.warning(f"Processing failed for: {archive_path} – reason: {reason}")
             save_warning(WARNING_FILE, archive_path.split("\\")[-1], reason)
@@ -213,9 +217,9 @@ def main() -> None:
         sys.exit(0)
 
     # Interval scheduler
-    logger.info(f"Scheduler started. Scanning every {SCAN_INTERVAL_MINUTES} minute(s).")
+    logger.info(f"Scheduler started. Scanning every {SCAN_INTERVAL_SECONDS} second(s).")
     logger.info("Press Ctrl-C to stop.")
-    schedule.every(SCAN_INTERVAL_MINUTES).minutes.do(run_scan_job)
+    schedule.every(SCAN_INTERVAL_SECONDS).seconds.do(run_scan_job)
 
     # Run once at startup immediately
     logger.info("Running an initial scan on startup...")
