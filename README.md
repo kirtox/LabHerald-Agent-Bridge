@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-LabHerald Agent Bridge is an automation script that scans a network shared folder for archive files daily, sends them to IntelAvatar for analysis, moves the results into the `Completed` folder, and sends an email notification via Outlook.
+LabHerald Agent Bridge is an automation script that scans a network shared folder for archive files daily, sends them to IntelAvatar for analysis, moves the results into the `Completed` folder, and sends an email notification via SMTP.
 
 ---
 
@@ -14,10 +14,11 @@ LabHerald-Agent-Bridge/
 ├── config.py            # Centralized path and parameter configuration
 ├── folder_watcher.py    # Folder access check + new archive scanner
 ├── file_processor.py    # Full processing pipeline for a single archive
-├── email_draft.py       # Sends email notification via Outlook COM
+├── email_draft.py       # Builds the notification email (HTML body)
+├── notify_email.py      # Sends email via SMTP relay (see docs/adr/0001-smtp-email-transport.md)
 ├── state_manager.py     # Persists processed records + failure warnings
 ├── logger_setup.py      # Shared logger (console + rotating file)
-└── requirements.txt     # Dependencies (schedule)
+└── requirements.txt     # Dependencies (schedule, pytest)
 ```
 
 ---
@@ -62,7 +63,7 @@ python main.py --test-step avatar
 ```powershell
 python main.py --test-step email
 ```
-> Finds the latest `llm_report_*.json` in any sub-folder of `Agent_Bridge_Admin/`, generates a draft, and sends it via Outlook
+> Finds the latest `llm_report_*.json` in any sub-folder of `Agent_Bridge_Admin/`, generates a draft, and sends it via SMTP
 
 ---
 
@@ -99,8 +100,8 @@ run_scan_job()
 │       ├─ Success → add to processed set, save to STATE_FILE, clear warning record
 │       └─ Failure → log warning, write to warning_files.json
 │
-└─ 5. send_via_outlook(successfully_processed, COMPLETED_FOLDER)
-        └─ Send email notification via Outlook COM
+└─ 5. send_via_smtp(successfully_processed, COMPLETED_FOLDER)
+        └─ Send email notification via SMTP relay
 ```
 
 ---
@@ -162,6 +163,11 @@ Records failed archives and their failure reasons, with cumulative failure count
 | `LOCAL_STAGING_FOLDER` | `~/Downloads/Agent_Bridge_Admin` | Local staging folder |
 | `EMAIL_TO` | `["recipient@intel.com"]` | Recipient list (multiple allowed) |
 | `EMAIL_CC` | `["cc1@intel.com", ...]` | CC recipient list |
+| `EMAIL_FROM` | `"agent-admin-robot@intel.com"` | Fixed sender address (never the running user's identity) |
+| `SMTP_HOST` / `SMTP_PORT` | `"smtp.intel.com"` / `25` | SMTP relay address |
+| `SMTP_USE_TLS` | `false` | Whether to call STARTTLS before sending |
+| `SMTP_USERNAME` / `SMTP_PASSWORD` | `""` / `""` | Optional SMTP auth; left blank when the relay doesn't require login |
+| `EMAIL_DRY_RUN` | `false` | When `true`, logs the email instead of sending it |
 | `STATE_FILE` | `processed_files.json` | Processed files record |
 | `WARNING_FILE` | `warning_files.json` | Failure warning record |
 
@@ -203,7 +209,7 @@ dist/
 
 ## Email Notification
 
-After successfully processing at least one archive, the system sends an email notification via Outlook COM automation.
+After successfully processing at least one archive, the system sends an email notification via a direct SMTP relay connection (see `notify_email.py` and `docs/adr/0001-smtp-email-transport.md`).
 
 The email includes:
 - Scan date and time
@@ -211,6 +217,6 @@ The email includes:
 - Link to the Completed folder
 - IntelAvatar analysis summary (root cause + recommended actions)
 
-Recipients and CC are configured in `config.py` via `EMAIL_TO` / `EMAIL_CC` — update those lists to change recipients.
+Recipients and CC are configured in `config.py` via `EMAIL_TO` / `EMAIL_CC` — update those lists to change recipients. Sender address and SMTP relay settings are configured in `config.json` (`email_from`, `smtp_host`, `smtp_port`, `smtp_use_tls`, `smtp_username`, `smtp_password`, `email_dry_run`).
 
-> **Note**: Auto-send requires `pywin32` (`pip install pywin32`) and a signed-in Outlook desktop client on the machine.
+> **Note**: The sender is always the fixed `email_from` address — it does not depend on which Windows account runs the scheduler, and no local mail client is required.

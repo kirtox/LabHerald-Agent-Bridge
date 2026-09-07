@@ -30,7 +30,7 @@ from datetime import datetime
 import schedule
 
 from config import COMPLETED_FOLDER, LOCAL_STAGING_FOLDER, SCAN_INTERVAL_SECONDS, SOURCE_FOLDER, STATE_FILE, WARNING_FILE
-from email_draft import send_via_outlook
+from email_draft import send_via_smtp
 from file_processor import process_archive, run_intel_avatar, wait_for_avatar_result, _copy_to_staging
 from folder_watcher import check_folder_access, scan_new_archives
 from logger_setup import setup_logger
@@ -110,8 +110,8 @@ def test_email() -> None:
     json_path = matches[0]
     logger.info(f"[TEST] Using result JSON: {json_path}")
     result_jsons = [json_path]
-    logger.info("[TEST] Sending via Outlook...")
-    send_via_outlook([json_path], COMPLETED_FOLDER, result_jsons)
+    logger.info("[TEST] Sending via SMTP...")
+    send_via_smtp([json_path], COMPLETED_FOLDER, result_jsons)
     logger.info("[TEST] Email sent.")
 
 
@@ -160,12 +160,12 @@ def run_scan_job() -> None:
             logger.warning(f"Processing failed for: {archive_path} – reason: {reason}")
             save_warning(WARNING_FILE, archive_path.split("\\")[-1], reason)
 
-    # 5. Send email via Outlook
+    # 5. Send email via SMTP
     if successfully_processed:
         try:
-            send_via_outlook(successfully_processed, COMPLETED_FOLDER, result_json_paths)
+            send_via_smtp(successfully_processed, COMPLETED_FOLDER, result_json_paths)
         except Exception as exc:  # noqa: BLE001
-            logger.error(f"Could not send email via Outlook: {exc}")
+            logger.error(f"Could not send email via SMTP: {exc}")
 
     logger.info(
         f"Scan complete. {len(successfully_processed)}/{len(new_archives)} archive(s) processed successfully."

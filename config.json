@@ -9,7 +9,7 @@
         "frank.fc.yang@intel.com", "erniex.wu@intel.com", "benx.lai@intel.com"
     ],
     "email_to": [
-        "erniex.wu@intel.com", "kj.fang@intel.com"
+        "erniex.wu@intel.com"
     ],
     "email_cc": [
         "erniex.wu@intel.com"
@@ -17,5 +17,12 @@
     "scan_interval_seconds": 10,
     "intelavatar_timeout": 60,    "network_username": "\\oob",
     "network_password": "",    "avatar_result_pattern": "llm_report_*.json",
-    "local_staging_folder": ""
+    "local_staging_folder": "",
+    "email_from": "agent-admin-robot@intel.com",
+    "smtp_host": "smtp.intel.com",
+    "smtp_port": 25,
+    "smtp_use_tls": false,
+    "smtp_username": "",
+    "smtp_password": "",
+    "email_dry_run": false
 }

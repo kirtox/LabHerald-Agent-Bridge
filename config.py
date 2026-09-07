@@ -42,6 +42,13 @@ _DEFAULTS: dict = {
     "intelavatar_timeout":   180,    "network_username":      "",
     "network_password":      "",    "avatar_result_pattern": "llm_report_*.json",
     "local_staging_folder":  "",   # leave empty to use ~/Downloads/Agent_Bridge_Admin
+    "email_from":            "agent-admin-robot@intel.com",
+    "smtp_host":             "smtp.intel.com",
+    "smtp_port":             25,
+    "smtp_use_tls":          False,
+    "smtp_username":         "",
+    "smtp_password":         "",
+    "email_dry_run":         False,
 }
 
 # ---------------------------------------------------------------------------
@@ -77,6 +84,15 @@ INTELAVATAR_TIMEOUT   = _cfg["intelavatar_timeout"]
 NETWORK_USERNAME      = _cfg.get("network_username", "")
 NETWORK_PASSWORD      = _cfg.get("network_password", "")
 AVATAR_RESULT_PATTERN = _cfg["avatar_result_pattern"]
+
+# SMTP transport settings (see docs/adr/0001-smtp-email-transport.md)
+EMAIL_FROM     = _cfg.get("email_from", "agent-admin-robot@intel.com")
+SMTP_HOST      = _cfg.get("smtp_host", "smtp.intel.com")
+SMTP_PORT      = int(_cfg.get("smtp_port", 25))
+SMTP_USE_TLS   = bool(_cfg.get("smtp_use_tls", False))
+SMTP_USERNAME  = _cfg.get("smtp_username", "")
+SMTP_PASSWORD  = _cfg.get("smtp_password", "")
+EMAIL_DRY_RUN  = bool(_cfg.get("email_dry_run", False))
 
 _staging = _cfg.get("local_staging_folder", "")
 LOCAL_STAGING_FOLDER = (
