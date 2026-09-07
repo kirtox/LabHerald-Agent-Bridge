@@ -37,3 +37,6 @@ processed_files.json
 Thumbs.db
 .DS_Store
 desktop.ini
+
+# Context files
+data/
